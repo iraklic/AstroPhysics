@@ -30,12 +30,13 @@ bin2data <- function(binFile)
 # pathToFiles : path to the directory where txt or bin files are
 # suffix : it just a little comment if you wanna add to the final distilled data (e.g. "FilterUsed", etc.)
 # fileType : if the input is binary put "bin"
+# inPattern : particular patern of files to be selected
 # skipHeader : if the data files contain some non-data header lines one can skip them
 # parsing : if data file naming convention is not observed, i.e. filenames do not contain segging info (<delay>d<voltage>v<threshold>)
 # returnData : make this true if you just want total data return instead of distilled data
 # example : myData <- sensDataReader(<path>, fyleType = "bin")
 
-sensDataReader <- function(pathToFiles, suffix = "", fileType = "txt", skipHeader = 0, parsing = TRUE, returnData = FALSE)
+sensDataReader <- function(pathToFiles, suffix = "", fileType = "txt", skipHeader = 0, parsing = TRUE, returnData = FALSE, inPattern = "")
     {
     nominalThr <- c(H4W261 = 360, C7W260 = 385, E7W260 = 390, H9W261 = 300, H5W261 = 400, H6W261 = 340)
     sensorDepth <- c(H4W261 = 300, C7W260 = 200, E7W260 = -1, H9W261 = 50, H5W261 = 120, H6W261 = 200)
@@ -49,22 +50,25 @@ sensDataReader <- function(pathToFiles, suffix = "", fileType = "txt", skipHeade
     print(paste(color, " : ", sensor))
 
     filePattern = paste("*_*.", fileType, sep = "")
-    fileNames <- list.files(pathToFiles, pattern = filePattern, recursive = FALSE, include.dirs = FALSE, full.names = TRUE)
+    fileNames <- list.files(pathToFiles, pattern = c(filePattern, inPattern), recursive = FALSE, include.dirs = FALSE, full.names = TRUE)
+    
+    fileNames <- Filter(function(x) grepl(inPattern, x), fileNames)
     
     out <- data.frame(signal = numeric(), voltage = numeric(), delay = numeric(), threshold = numeric(), nPixel = numeric())
     
-    tempVoltage <- 0
-    tempDelay <- 0
-    tempThreshold <- 0
-    tempSignal <- 0
-    tempNPixel <- 0
+    tempVoltage <- -999
+    tempDelay <- -999
+    tempThreshold <- -999
+    tempSignal <- -999
+    tempNPixel <- -999
     
-    tempd <- data.frame(x = numeric(), y = numeric(), signal = numeric())
+    if (returnData) tempd <- data.frame(x = numeric(), y = numeric(), signal = numeric(), voltage = numeric(), nAppearance = numeric())
+    else tempd <- data.frame(x = numeric(), y = numeric(), signal = numeric())
     
     progressCounter <- 0
     for (f in fileNames)
         {
-        if ((progressCounter %% 10) == 0) print(paste(progressCounter, "of", length(fileNames)))
+        if ((progressCounter %% 10) == 0) print(paste(progressCounter, "of", length(fileNames), "", tempVoltage))
         progressCounter <- progressCounter + 1
         
         info = file.info(f)
@@ -78,7 +82,7 @@ sensDataReader <- function(pathToFiles, suffix = "", fileType = "txt", skipHeade
             colnames(d) <- c("x", "y", "signal")
         } 
         else d <- bin2data(f)
-
+        
         if (parsing)
         {
             pos_d <- regexpr('d', bf)[1]
@@ -97,28 +101,64 @@ sensDataReader <- function(pathToFiles, suffix = "", fileType = "txt", skipHeade
             threshold <- 9999
         }
         
+        if (returnData)
+            {
+            d$voltage <- voltage
+            d$nAppearance <- 1
+            }
+        
         if (tempVoltage != voltage || tempDelay != delay || tempThreshold != threshold)
             {
         #    cutOut <- subset(tempd, tempd$signal > 10 & tempd$signal < 200 & tempd$x > 80 & tempd$x < 140 & tempd$y > 80 & tempd$y < 140)
         #    cutOut <- subset(tempd, tempd$signal > 10 & tempd$signal < 500)
             cutOut <- tempd
             tempSignal <- mean(cutOut$signal)
-            if (tempVoltage != 0)
+            if (tempVoltage != -999)
                 {
                 tempData <- data.frame(signal = tempSignal, voltage = tempVoltage, threshold = tempThreshold, delay = tempDelay, nPixel = tempNPixel)
                 out <- rbind(out, tempData)
                 }
+            
+            if (returnData)
+                if (tempVoltage == -999)
+                    {
+                    tempd <- d
+                    startNP <- 0
+                    }
+                else
+                    {
+                    startNP <- nrow(tempd)
+                    rbind(tempd, d)
+                    }
+            else tempd <- d
+            
+            
+            print (paste("NEW VOLTAGE", voltage, "already have", startNP, "rows!"))
+
             tempVoltage <- voltage
             tempThreshold <- threshold
             tempDelay <- delay
-            
-            tempd <- d
             }
         else
             {
+#           checking how many times pixel appeared in different data snapshots
+            for (np in (startNP+1):nrow(tempd))
+                {
+#                if ((np - startNP) %% 10 == 0) print (paste(np, "of", nrow(tempd)))
+                for (npd in 1:nrow(d))
+                    {
+                    if (tempd[np,]$x == d[npd,]$x && tempd[np,]$y == d[npd,]$y)
+                        {
+                        tempd[np,]$nAppearance <- tempd[np,]$nAppearance + 1
+#                        print(paste(tempd[np,]$x, "", d[npd,]$x, "", tempd[np,]$y, "", d[npd,]$y))
+                        }
+                    }
+                }
+                
             tempd <- rbind(tempd, d)
             if (tempNPixel != 0) {tempNPixel <- mean(c(tempNPixel, nrow(d)))}
             else {tempNPixel <- nrow(d)}
+
             }
 #        print(paste(voltage, " : ", delay, " : ", threshold))
         remove(d)
