@@ -129,11 +129,16 @@ sensDataReader <- function(pathToFiles, suffix = "", fileType = "txt", skipHeade
                     {
                     startNP <- nrow(tempd)
                     rbind(tempd, d)
+                    if (startNP >= nrow(tempd))
+                        {
+                        print (paste("SAOMETHING WENT WRONG", starNP, nrow(tempd)))
+                        return(FALSE)
+                        }
                     }
             else tempd <- d
             
             
-            print (paste("NEW VOLTAGE", voltage, "already have", startNP, "rows!"))
+            if (returnData) print (paste("NEW VOLTAGE", voltage, "already have", startNP, "rows!"))
 
             tempVoltage <- voltage
             tempThreshold <- threshold
@@ -142,18 +147,21 @@ sensDataReader <- function(pathToFiles, suffix = "", fileType = "txt", skipHeade
         else
             {
 #           checking how many times pixel appeared in different data snapshots
-            for (np in (startNP+1):nrow(tempd))
+            if (returnData)
                 {
-#                if ((np - startNP) %% 10 == 0) print (paste(np, "of", nrow(tempd)))
-                for (npd in 1:nrow(d))
+                for (np in (startNP+1):nrow(tempd))
                     {
-                    if (tempd[np,]$x == d[npd,]$x && tempd[np,]$y == d[npd,]$y)
-                        {
-                        tempd[np,]$nAppearance <- tempd[np,]$nAppearance + 1
-#                        print(paste(tempd[np,]$x, "", d[npd,]$x, "", tempd[np,]$y, "", d[npd,]$y))
+#                   if ((np - startNP) %% 10 == 0) print (paste(np, "of", nrow(tempd)))
+                    for (npd in 1:nrow(d))
+                       {
+                        if (tempd[np,]$x == d[npd,]$x && tempd[np,]$y == d[npd,]$y)
+                            {
+                            tempd[np,]$nAppearance <- tempd[np,]$nAppearance + 1
+#                           print(paste(tempd[np,]$x, "", d[npd,]$x, "", tempd[np,]$y, "", d[npd,]$y))
+                            }
                         }
-                    }
                 }
+            }
                 
             tempd <- rbind(tempd, d)
             if (tempNPixel != 0) {tempNPixel <- mean(c(tempNPixel, nrow(d)))}
