@@ -128,12 +128,7 @@ sensDataReader <- function(pathToFiles, suffix = "", fileType = "txt", skipHeade
                 else
                     {
                     startNP <- nrow(tempd)
-                    rbind(tempd, d)
-                    if (startNP >= nrow(tempd))
-                        {
-                        print (paste("SAOMETHING WENT WRONG", starNP, nrow(tempd)))
-                        return(FALSE)
-                        }
+                    tempd <- rbind(tempd, d)
                     }
             else tempd <- d
             
