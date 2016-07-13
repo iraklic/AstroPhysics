@@ -1,0 +1,14 @@
+UnitID = g5161011
+SerialNo = 116VA011
+Date = 2016/05/26 10:41:47
+Integration = 11 usec
+CaptureMode = SPECIFIED NUMBER
+A0 = 3.177690273E+002
+B1 = 2.700686029E+000
+B2 = -1.144517407E-003
+B3 = -8.530887275E-006
+B4 = 1.496279381E-008
+B5 = -5.706326871E-012
+Averaging = 1 scan
+TriggerPolarity = RISING
+TriggerOutput = OFF

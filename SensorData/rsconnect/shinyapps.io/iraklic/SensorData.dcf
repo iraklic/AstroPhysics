@@ -1,0 +1,9 @@
+name: SensorData
+account: iraklic
+server: shinyapps.io
+appId: 92833
+bundleId: 504041
+url: https://iraklic.shinyapps.io/SensorData/
+when: 1468434789.55473
+asMultiple: FALSE
+asStatic: FALSE
