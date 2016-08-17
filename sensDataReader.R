@@ -62,13 +62,14 @@ sensDataReader <- function(pathToFiles, suffix = "", fileType = "txt", skipHeade
     tempSignal <- -999
     tempNPixel <- -999
     
-    if (returnData) tempd <- data.frame(x = numeric(), y = numeric(), signal = numeric(), voltage = numeric(), nAppearance = numeric())
-    else tempd <- data.frame(x = numeric(), y = numeric(), signal = numeric())
+#    if (returnData) tempd <- data.frame(x = numeric(), y = numeric(), signal = numeric(), voltage = numeric(), nAppearance = numeric())
+#    else tempd <- data.frame(x = numeric(), y = numeric(), signal = numeric())
+    tempd <- data.frame(x = numeric(), y = numeric(), signal = numeric(), voltage = numeric())
     
     progressCounter <- 0
     for (f in fileNames)
         {
-        if ((progressCounter %% 10) == 0) print(paste(progressCounter, "of", length(fileNames), "", tempVoltage))
+#        if ((progressCounter %% 10) == 0) print(paste(progressCounter, "of", length(fileNames), "", tempVoltage))
         progressCounter <- progressCounter + 1
         
         info = file.info(f)
@@ -104,7 +105,7 @@ sensDataReader <- function(pathToFiles, suffix = "", fileType = "txt", skipHeade
         if (returnData)
             {
             d$voltage <- voltage
-            d$nAppearance <- 1
+#            d$nAppearance <- 1
             }
         
         if (tempVoltage != voltage || tempDelay != delay || tempThreshold != threshold)
@@ -142,7 +143,7 @@ sensDataReader <- function(pathToFiles, suffix = "", fileType = "txt", skipHeade
         else
             {
 #           checking how many times pixel appeared in different data snapshots
-            if (returnData)
+            if (returnData & FALSE)
                 {
                 for (np in (startNP+1):nrow(tempd))
                     {
