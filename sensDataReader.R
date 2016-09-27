@@ -44,7 +44,7 @@ sensDataReader <- function(pathToFiles, suffix = "", fileType = "txt", skipHeade
     dirs <- unlist(strsplit(pathToFiles, split = "/"))
     
     color <- dirs[9]
-    sensor <- dirs[10]
+    sensor <- dirs[11]
     lambda <- vLength[color]
     
     print(paste(color, " : ", sensor))
@@ -112,7 +112,14 @@ sensDataReader <- function(pathToFiles, suffix = "", fileType = "txt", skipHeade
             {
         #    cutOut <- subset(tempd, tempd$signal > 10 & tempd$signal < 200 & tempd$x > 80 & tempd$x < 140 & tempd$y > 80 & tempd$y < 140)
         #    cutOut <- subset(tempd, tempd$signal > 10 & tempd$signal < 500)
-            cutOut <- tempd
+        #    cutOut <- subset(tempd, tempd$signal < 500 & tempd$x > 100 & tempd$x < 140 & tempd$y > 60 & tempd$y < 120)
+            
+            myXmean <- mean(tempd$x)
+            myYmean <- mean(tempd$y)
+            
+            cutOut <- subset(tempd, tempd$signal < 500 & tempd$x > myXmean -10 & tempd$x < myXmean + 10 & tempd$y > myYmean - 10 & tempd$y < myYmean + 10)
+            
+        #    cutOut <- tempd
             tempSignal <- mean(cutOut$signal)
             if (tempVoltage != -999)
                 {
@@ -187,6 +194,8 @@ sensDataReader <- function(pathToFiles, suffix = "", fileType = "txt", skipHeade
     out$Id <- paste(sensor, " : ", suffix, " : ", sensorDepth[sensor], " (nm)")
     
 #    out <- subset(out, out$threshold == nominalThr[sensor])
+    
+    out <- out[order(out$voltage),]
     
     return(out)
     }
